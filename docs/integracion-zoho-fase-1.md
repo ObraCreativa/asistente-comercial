@@ -7,8 +7,8 @@ Conectar el directorio y las fichas de clientes en modo lectura y preparar el an
 ## Modelo observado en Zoho
 
 - Empresas: módulo `Accounts`. `Account_Name` tiene la etiqueta «Nombre FiscaI»; `Nombre_Fiscal` tiene la etiqueta «Nombre Comercial». Verificar estos nombres por etiqueta y con registros reales antes de intercambiarlos.
-- Contactos: `Contacts`, relacionado con Accounts mediante `Account_Name`.
-- Existe además un módulo personalizado `Clientes`, con nombre, apellido y un lookup `Nombre_de_Cuenta` hacia Accounts. Su función y posible duplicación con Contacts deben comprobarse antes de seleccionar una fuente para personas.
+- Según Davide, `Accounts` es la base general de empresas y contactos de la empresa. `Contacts` representa el conjunto general de contactos y está relacionado con Accounts mediante `Account_Name`.
+- Según Davide, `Clientes` se refiere a clientes activos: los que han comprado en los últimos dos años. En los metadatos observados es un módulo personalizado con nombre, apellido y un lookup `Nombre_de_Cuenta` hacia Accounts. Verificar con ejemplos cómo se actualiza esta clasificación, cómo se relacionan sus registros con Contacts y si el criterio de dos años se calcula automáticamente; no asumirlo.
 - Ventas: `Parseo`, lookup `Cliente` hacia Accounts, fecha `Fecha_de_Factura`, número `N_mero_de_Factura`, moneda `Moneda`, proveedor `Nombre_del_Proveedor`, total `Total_de_Factura1`, nota de crédito `Nota_de_credito` y subformulario `Detalle`.
 - Detalle: módulo asociado `Detalle`, con `Parent_Id`, `Producto` (lookup Products), `C_digo`, `Modelo_Serie`, `Color`, `Acabado`, `Formato`, `Cantidad` (texto), `UM`, `Precio1` y `Total1`. Normalizar cantidades con validación y conservar el original.
 - `Invoices` (Facturas) existe y contiene campos de factura y también campos comerciales por artículo. Su uso real y relación con comisiones y Parseo deben verificarse con ejemplos; no asumir que todos sus registros son de un solo tipo ni sumarlos a Parseo.
@@ -36,7 +36,7 @@ No inventar campos ausentes ni convertir días de crédito en condiciones comple
 
 ## Primer entregable
 
-- Buscar empresas reales en Accounts y abrir una ficha con los contactos correctamente asociados.
+- Buscar empresas reales en Accounts y abrir una ficha con los contactos correctamente asociados; distinguir el directorio general de los clientes activos según el criterio de compra en los últimos dos años.
 - Generar PDF a partir de campos verificados, manteniendo vacíos los que no existan.
 - Probar con Atika y otro cliente, comparando con Zoho y el PDF aprobado.
 - Documentar cómo iniciar el proyecto, configurar variables de entorno y revisar cambios mediante pull request.
