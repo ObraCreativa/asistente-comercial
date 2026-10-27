@@ -1,0 +1,1 @@
+{"name": "Asistente Comercial · Obra Creativa", "short_name": "Asistente OC", "lang": "es-MX", "start_url": "/", "scope": "/", "display": "standalone", "background_color": "#f2edea", "theme_color": "#f2edea", "icons": [{"src": "/icon-obra-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "/icon-obra-512.png", "sizes": "512x512", "type": "image/png"}]}

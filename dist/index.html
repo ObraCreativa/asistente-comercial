@@ -1,0 +1,2306 @@
+<!doctype html>
+<html lang="es-MX" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+
+<title>Asistente OC</title>
+<style>:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --icon-size: 16px;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --corner-shape: round;
+  --radius: var(--border-radius-lg, 10px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z'/%3E%3C/svg%3E");
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html > body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: var(--visualize-paint-gutter, 0px);
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+:root:not([data-app-block-surface], [data-visualize-standalone]) > body {
+  padding: 12px;
+}
+
+.cursor-interaction {
+  cursor: var(--cursor-interaction, pointer);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: var(--cursor-interaction, pointer);
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive > .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align="right"]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align="center"]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: var(--corner-shape);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+.widget {
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  box-shadow: 0 0 0 0.5px var(--border-strong, var(--border));
+  color: var(--foreground);
+  background: var(--background);
+}
+
+#widget > :not(.card, .widget, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The shared runtime owns data-tooltip; suppress AppBlock's pseudo-tooltip. */
+main [data-tooltip]::after {
+  content: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+hr {
+  width: 100%;
+  height: 1px;
+  margin-block: 6px;
+  border: 0;
+  background: var(--border);
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: flex;
+  height: 8px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 8px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar:only-child {
+  border-radius: var(--radius-full);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls > .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls > .form-label > :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.nav-link,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn,
+.nav-link {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: var(--cursor-interaction, pointer);
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover,
+.nav-link:not(:disabled):not([aria-disabled="true"]):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.nav-pills .nav-link {
+  min-width: 0;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.nav-justified .nav-link {
+  flex: 1 1 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nav-pills .nav-link.active {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+/* Shared preview chrome; product styles stay inside each variant. */
+.viz-dotted-background {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--foreground) 14%, transparent) 0.8px,
+    transparent 0.8px
+  );
+  background-position: center;
+  background-size: 16px 16px;
+}
+
+.viz-carousel {
+  position: relative;
+  min-width: 0;
+}
+
+.viz-carousel:has(> .viz-carousel-controls) {
+  min-height: calc(60px + var(--viz-carousel-picker-height, 0px));
+  padding-bottom: 60px;
+}
+
+.viz-carousel > [data-variant][hidden] {
+  display: none !important;
+}
+
+.viz-carousel > [data-variant] {
+  isolation: isolate;
+}
+
+.viz-carousel-controls {
+  --viz-carousel-hover: light-dark(
+    color-mix(in srgb, var(--foreground) 5.4%, transparent),
+    color-mix(in srgb, var(--foreground) 7.8%, transparent)
+  );
+  position: absolute;
+  z-index: 2;
+  bottom: 8px;
+  left: 50%;
+  display: flex;
+  width: max-content;
+  /* Leave room for the host's design-controls launcher at the trailing edge. */
+  max-width: calc(100% - 96px);
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+  /* Match the settings dropdown chrome independently of the content font size. */
+  font-size: 13px;
+  font-weight: var(--font-weight-normal);
+  line-height: 18px;
+  transform: translateX(-50%);
+  user-select: none;
+}
+
+/* Keep authored mockup button styles out of the shared carousel chrome. */
+.viz-carousel-controls button,
+.viz-carousel-picker > summary {
+  display: flex !important;
+  height: auto !important;
+  min-height: 30px;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px;
+  padding: 0 6px !important;
+  -webkit-app-region: no-drag;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: inherit !important;
+  background: transparent !important;
+  font: inherit !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.viz-carousel-controls > button,
+.viz-carousel-picker > summary {
+  position: relative;
+  isolation: isolate;
+}
+
+.viz-carousel-controls > button {
+  --icon-size: 16px;
+  width: 30px !important;
+  padding: 0 !important;
+}
+
+.viz-carousel-picker > summary {
+  padding-inline: 12px !important;
+}
+
+.viz-carousel-controls .viz-carousel-caret {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  margin: 0;
+  color: inherit;
+  transform: rotate(180deg);
+}
+
+.viz-carousel-controls > button > svg,
+.viz-carousel-controls .viz-carousel-caret,
+.viz-carousel-count {
+  opacity: 0.5;
+}
+
+.viz-carousel-controls > button::before,
+.viz-carousel-picker > summary::before {
+  position: absolute;
+  z-index: -1;
+  inset: 3px;
+  border-radius: 12px;
+  content: "";
+  pointer-events: none;
+}
+
+.viz-carousel-controls > button:hover::before,
+.viz-carousel-picker > summary:hover::before {
+  background: var(--viz-carousel-hover);
+}
+
+.viz-carousel-controls > button,
+.viz-carousel-controls [data-lucide],
+.viz-carousel-controls .lucide {
+  flex-shrink: 0;
+}
+
+.viz-carousel-picker {
+  min-width: 0;
+}
+
+.viz-carousel-picker > summary {
+  min-width: 0;
+  list-style: none;
+}
+
+.viz-carousel-picker > summary::-webkit-details-marker {
+  display: none;
+}
+
+.viz-carousel-count {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.viz-carousel-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viz-carousel-options {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  left: 0;
+  display: flex;
+  max-height: 240px;
+  flex-direction: column;
+  gap: 2px;
+  overflow: auto;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--background);
+  box-shadow: 0 4px 12px light-dark(rgb(0 0 0 / 6%), rgb(0 0 0 / 25%));
+}
+
+.viz-carousel-options > button {
+  border-radius: max(0px, calc(var(--radius-lg) - 5px)) !important;
+  width: 100% !important;
+  min-height: 28px;
+  justify-content: flex-start !important;
+  padding: 4px 8px !important;
+  font-size: var(--font-size-small) !important;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.viz-carousel-options > [aria-current="true"],
+.viz-carousel-options > button:hover {
+  background: var(--viz-carousel-hover) !important;
+}
+
+.btn:disabled,
+.nav-link:disabled,
+.nav-link[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type="file"] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type="file"]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type="file"]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type="color"] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: var(--corner-shape);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type="checkbox"]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: "";
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type="radio"] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type="radio"]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: "";
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed="true"],
+  [aria-selected="true"],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed="true"], [aria-selected="true"], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.viz-carousel-controls :is(button, summary):focus-visible {
+  outline: 2px solid var(--ring) !important;
+  outline-offset: 2px !important;
+}
+
+@media (pointer: coarse) {
+  .viz-carousel:has(> .viz-carousel-controls) {
+    min-height: calc(76px + var(--viz-carousel-picker-height, 0px));
+    padding-bottom: 76px;
+  }
+
+  .btn,
+  .nav-link,
+  .viz-carousel-controls button,
+  .viz-carousel-picker > summary,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Keep small-screen WebKit from zooming when a text field receives focus. */
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type="file"]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type="color"] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type="date"],
+    [type="datetime-local"],
+    [type="month"],
+    [type="time"],
+    [type="week"]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: "";
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget > svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html>body{padding:0}</style>
+
+<meta name="description" content="Simulador del asistente comercial de Obra Creativa: clientes, pedidos, ventas y seguimiento.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Asistente OC">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f2edea">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon-obra.png">
+<link rel="icon" type="image/png" href="/favicon-obra.png">
+<style>
+html,body{margin:0;padding:0!important;min-height:100%;background:light-dark(#f2edea,#1e2328);color-scheme:light dark}
+#oc-app-full{padding:0!important;background:none!important}
+#oc-app-full.app-wrapper{background:none}
+#oc-app-full .app{max-width:520px;min-height:100dvh;display:flex;flex-direction:column;border:0;border-radius:0;box-shadow:none;overflow:visible;padding-top:env(safe-area-inset-top)}
+#oc-app-full .status,#oc-app-full .home-line{display:none}
+#oc-app-full header{padding-top:24px}
+#oc-app-full .preview{font-size:12px}
+#oc-app-full main{flex:1;padding-bottom:110px;min-height:0}
+#oc-app-full nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;z-index:20;padding:10px 3px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px light-dark(#1e232808,#00000020)}
+#oc-app-full nav button{font-size:12px;min-width:50px;min-height:50px}
+#oc-app-full .brand{font-size:12px}
+#oc-app-full .muted,#oc-app-full label,#oc-app-full .hero-footer,#oc-app-full .pill,#oc-app-full .feedback{font-size:13px}
+#oc-app-full .list-row,#oc-app-full .tabs button,#oc-app-full .action{font-size:14px}
+#oc-app-full .voice-area{padding-top:25px}
+#oc-app-full .list-row{overflow-wrap:anywhere}
+@media(min-width:700px){#oc-app-full .app{border-left:1px solid var(--oc-line);border-right:1px solid var(--oc-line)}}
+</style>
+
+</head>
+<body>
+<script type="application/json" id="codex-visualization-widget-state">__CODEX_VISUALIZATION_WIDGET_STATE__</script>
+<script>(() => {
+  const root = document.documentElement;
+  const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+  const apply = Reflect.apply;
+  const isArray = Array.isArray;
+  const hasOwn = Object.hasOwn;
+  const parentWindow = globalThis.parent;
+  const stringify = JSON.stringify;
+  const parse = JSON.parse;
+  const encode = TextEncoder.prototype.encode.bind(new TextEncoder());
+  const initialStateElement = document.getElementById(
+    "codex-visualization-widget-state",
+  );
+  const initialGlobals = parse(initialStateElement?.textContent ?? "{}");
+  initialStateElement?.remove();
+  /** @type {Record<string, unknown> | null} */
+  let state = initialGlobals.widgetState ?? null;
+  const statePersistence = initialGlobals.statePersistence ?? "none";
+  let nextStateRequestId = 0;
+  /** @type {Map<number, { resolve: () => void; reject: (error: Error) => void; timeout: ReturnType<typeof globalThis.setTimeout>; serializedState: string }>} */
+  const pendingStateWrites = new Map();
+  const persistenceError = () =>
+    Object.assign(
+      new Error("The host could not persist the widget state update"),
+      {
+        code: -32000,
+        data: { code: "widget_state_persistence_failed", retryable: false },
+      },
+    );
+  /**
+   * @param {object} prototype
+   * @param {string} property
+   */
+  const getPrototypeGetter = (prototype, property) => {
+    // oxlint-disable-next-line typescript/unbound-method -- invoked through captured Reflect.apply
+    const getter = Object.getOwnPropertyDescriptor(prototype, property)?.get;
+    if (getter == null) {
+      throw new Error(`Missing ${property} getter`);
+    }
+    return getter;
+  };
+  const getMessageData = getPrototypeGetter(MessageEvent.prototype, "data");
+  const getMessagePorts = getPrototypeGetter(MessageEvent.prototype, "ports");
+  const getMessageSource = getPrototypeGetter(MessageEvent.prototype, "source");
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const addHostMessageListener = MessagePort.prototype.addEventListener;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const postHostMessage = MessagePort.prototype.postMessage;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const startHostPort = MessagePort.prototype.start;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const stopMessagePropagation = Event.prototype.stopImmediatePropagation;
+  /** @type {MessagePort | null} */
+  let hostPort = null;
+  const postToHost = (type, payload) => {
+    if (hostPort != null) {
+      apply(postHostMessage, hostPort, [{ type, ...payload }]);
+    }
+  };
+  const openExternal = ({ href }) => {
+    if (globalThis.navigator.userActivation?.isActive === true) {
+      postToHost("open-external", { href });
+    }
+  };
+  const sendFollowUpMessage = ({ context, prompt, title }) => {
+    if (globalThis.navigator.userActivation?.isActive === true) {
+      postToHost("follow-up", { context, prompt, title });
+    }
+    return Promise.resolve();
+  };
+  /**
+   * @param {Record<string, unknown> | ((previous: Record<string, unknown> | null) => Record<string, unknown>)} next
+   * @returns {Promise<void>}
+   */
+  const setWidgetState = async (next) => {
+    const nextState = typeof next === "function" ? next(state) : next;
+    if (
+      nextState == null ||
+      typeof nextState !== "object" ||
+      isArray(nextState)
+    ) {
+      throw new TypeError("Widget state must be a JSON object");
+    }
+    const inputState = stringify(
+      nextState,
+      (_key, /** @type {unknown} */ value) => {
+        if (
+          typeof value === "undefined" ||
+          typeof value === "function" ||
+          typeof value === "symbol" ||
+          (typeof value === "number" && !Number.isFinite(value))
+        ) {
+          throw new TypeError("Widget state must be a JSON object");
+        }
+        return value;
+      },
+    );
+    const parsedState = parse(inputState);
+    if (
+      parsedState == null ||
+      typeof parsedState !== "object" ||
+      isArray(parsedState)
+    ) {
+      throw new TypeError("Widget state must be a JSON object");
+    }
+    const storedState = {
+      modelContent: null,
+      privateContent: null,
+      ...parsedState,
+    };
+    const serializedState = stringify(storedState);
+    if (encode(serializedState).length > 16 * 1024) {
+      throw new TypeError(
+        "Widget state must be a JSON object of at most 16 KiB",
+      );
+    }
+    if (
+      hasOwn(storedState, "imageIds") &&
+      (!isArray(storedState.imageIds) ||
+        storedState.imageIds.some(
+          (/** @type {unknown} */ id) => typeof id !== "string",
+        ))
+    ) {
+      throw new TypeError("Widget state imageIds must be an array of strings");
+    }
+    if (storedState.imageIds?.length > 0) {
+      throw Object.assign(
+        new TypeError("Visualization state does not support image attachments"),
+        { code: -32602, data: { code: "images_unsupported" } },
+      );
+    }
+    state = storedState;
+    globalThis.openai.widgetState = state;
+    globalThis.dispatchEvent(
+      new CustomEvent("openai:set_globals", {
+        detail: { globals: { widgetState: state } },
+      }),
+    );
+    if (statePersistence === "none") {
+      throw persistenceError();
+    }
+    const id = ++nextStateRequestId;
+    return new Promise((resolve, reject) => {
+      const timeout = globalThis.setTimeout(() => {
+        pendingStateWrites.delete(id);
+        reject(persistenceError());
+      }, 30_000);
+      pendingStateWrites.set(id, { resolve, reject, timeout, serializedState });
+      postToHost("widget-state-write", { id, state: serializedState });
+    });
+  };
+  const syncTheme = () => {
+    const theme = mediaQuery.matches ? "dark" : "light";
+    root.dataset.theme = theme;
+    globalThis.openai = {
+      ...globalThis.openai,
+      openExternal,
+      sendFollowUpMessage,
+      setWidgetState,
+      theme,
+      visualizationStyleVariables: {},
+      visualizationTheme: theme,
+      widgetState: state,
+      statePersistence,
+      stateModelContext: "none",
+    };
+    globalThis.dispatchEvent(
+      new CustomEvent("openai:set_globals", {
+        detail: { globals: globalThis.openai },
+      }),
+    );
+  };
+  const sendHeight = () => {
+    postToHost("height", {
+      height: Math.ceil(
+        Math.max(
+          document.body.scrollHeight,
+          document.body.getBoundingClientRect().height,
+        ),
+      ),
+    });
+  };
+
+  globalThis.addEventListener(
+    "message",
+    (event) => {
+      const data = apply(getMessageData, event, []);
+      const ports = apply(getMessagePorts, event, []);
+      const source = apply(getMessageSource, event, []);
+      if (
+        hostPort != null ||
+        source !== parentWindow ||
+        typeof data !== "object" ||
+        data?.type !== "codex-visualization-initialize" ||
+        !isArray(ports) ||
+        ports.length !== 1
+      ) {
+        return;
+      }
+      apply(stopMessagePropagation, event, []);
+      const nextHostPort = ports[0];
+      try {
+        apply(addHostMessageListener, nextHostPort, [
+          "message",
+          (event) => {
+            const data = apply(getMessageData, event, []);
+            if (typeof data === "object" && data?.type === "measure") {
+              sendHeight();
+            } else if (
+              typeof data === "object" &&
+              data?.type === "widget-state-result"
+            ) {
+              /** @type {unknown} */
+              const id = data.id;
+              if (typeof id !== "number") {
+                return;
+              }
+              const pending = pendingStateWrites.get(id);
+              if (pending != null) {
+                pendingStateWrites.delete(id);
+                globalThis.clearTimeout(pending.timeout);
+                if (data.ok === true) {
+                  pending.resolve();
+                } else {
+                  pending.reject(persistenceError());
+                }
+              }
+            }
+          },
+        ]);
+        apply(startHostPort, nextHostPort, []);
+      } catch {
+        return;
+      }
+      hostPort = nextHostPort;
+      for (const [id, { serializedState }] of pendingStateWrites) {
+        postToHost("widget-state-write", { id, state: serializedState });
+      }
+      sendHeight();
+    },
+    { capture: true },
+  );
+  document.currentScript?.remove();
+  mediaQuery.addEventListener("change", syncTheme);
+  globalThis.addEventListener("click", (event) => {
+    if (event.defaultPrevented) {
+      return;
+    }
+    let element = null;
+    if (event.target instanceof globalThis.Element) {
+      element = event.target;
+    } else if (event.target instanceof globalThis.Node) {
+      element = event.target.parentElement;
+    }
+    const link = element?.closest("a[href]");
+    const href = link?.getAttribute("href");
+    if (href == null) {
+      return;
+    }
+    if (href.startsWith("#")) {
+      let id;
+      try {
+        id = decodeURIComponent(href.slice(1));
+      } catch {
+        return;
+      }
+      const target = id.length === 0 ? root : document.getElementById(id);
+      if (
+        target == null ||
+        globalThis.navigator.userActivation?.isActive !== true
+      ) {
+        return;
+      }
+      event.preventDefault();
+      postToHost("scroll-to", {
+        top: target.getBoundingClientRect().top + globalThis.scrollY,
+      });
+      return;
+    }
+    event.preventDefault();
+    openExternal({ href });
+  });
+  new ResizeObserver(sendHeight).observe(document.body);
+  syncTheme();
+})();
+</script>
+<div id="oc-app-full" lang="es-MX" class="app-wrapper">
+<style>
+#oc-app-full{display:flex;justify-content:center;padding:20px 8px;background:transparent}
+#oc-app-full .app{--oc-bg:light-dark(#f2edea,#1e2328);--oc-surface:light-dark(#faf7f1,#2a3136);--oc-ink:light-dark(#1e2328,#f2edea);--oc-muted:light-dark(#667074,#b9c1c4);--oc-line:light-dark(#d8d3ca,#454d52);--oc-green:light-dark(#41825b,#98caa7);width:100%;max-width:400px;background:var(--oc-bg);color:var(--oc-ink);border:1px solid var(--oc-line);border-radius:30px;overflow:hidden;font-family:Oxygen,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 16px 50px light-dark(#1e232819,#00000035)}
+#oc-app-full *{box-sizing:border-box}
+#oc-app-full .status{display:flex;justify-content:space-between;padding:15px 22px 8px;font-size:12px}
+#oc-app-full .status div{display:flex;gap:5px}#oc-app-full .status svg{width:15px;height:15px}
+#oc-app-full header{padding:18px 22px 12px}
+#oc-app-full .brand{margin-bottom:16px}
+#oc-app-full .brand img{display:block;width:110px;max-width:100%;height:auto}
+#oc-app-full .header-line{display:flex;justify-content:space-between;gap:8px;align-items:center}
+#oc-app-full h1{font-family:Georgia,serif;font-size:34px;font-weight:400;margin:0 0 6px}
+#oc-app-full h2{font-size:15px;font-weight:500;margin:0 0 12px}
+#oc-app-full p{margin:0;line-height:1.5}
+#oc-app-full .muted{font-size:12px;color:var(--oc-muted)}
+#oc-app-full .preview{font-size:11px;border:1px solid var(--oc-line);border-radius:6px;padding:3px 6px;white-space:nowrap}
+#oc-app-full main{padding:4px 20px 20px;min-height:450px}
+#oc-app-full button,#oc-app-full input,#oc-app-full select,#oc-app-full textarea{font:inherit;color:inherit}
+#oc-app-full button{cursor:inherit;min-height:44px}
+#oc-app-full .cursor-interaction{cursor:inherit}
+#oc-app-full .action{border:0;border-radius:12px;background:var(--oc-ink);color:var(--oc-bg);padding:12px 16px;font-size:13px}
+#oc-app-full .secondary{background:var(--oc-surface);border:1px solid var(--oc-line);color:var(--oc-ink)}
+#oc-app-full .full{width:100%}
+#oc-app-full .icon-button{border:0;background:transparent;min-width:44px;display:flex;align-items:center;justify-content:center}
+#oc-app-full .icon-button svg{width:20px;height:20px}
+#oc-app-full .section{margin-top:22px}
+#oc-app-full .panel{background:var(--oc-surface);border:1px solid var(--oc-line);padding:16px;border-radius:16px}
+#oc-app-full .pill{font-size:11px;background:light-dark(#e4ebe1,#34483b);color:var(--oc-green);padding:4px 7px;border-radius:6px;display:inline-block}
+#oc-app-full .voice-area{text-align:center;padding:35px 0 26px}
+#oc-app-full .voice-area p{font-size:15px}
+#oc-app-full .mic{height:100px;width:100px;border:0;border-radius:50%;background:var(--oc-ink);color:var(--oc-bg);display:flex;align-items:center;justify-content:center;margin:22px auto 18px;box-shadow:0 0 0 12px light-dark(#e3ded5,#30373c)}
+#oc-app-full .mic svg{width:32px;height:32px}
+#oc-app-full .voice-area .muted{font-size:12px}
+#oc-app-full .list-row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:13px 0;border:0;border-bottom:1px solid var(--oc-line);background:transparent;font-size:14px}
+#oc-app-full .list-row .muted{display:block;margin-top:4px;font-size:12px}
+#oc-app-full .list-row svg{width:17px;height:17px;flex-shrink:0}
+#oc-app-full .row-main{display:flex;align-items:center;gap:11px;min-width:0}
+#oc-app-full .avatar{width:40px;height:40px;border-radius:50%;background:light-dark(#dfd9cf,#3b454b);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+#oc-app-full .letter{background:light-dark(#e6e1d8,#333c42);padding:5px 10px;margin:16px -20px 0;font-size:12px;color:var(--oc-muted)}
+#oc-app-full input,#oc-app-full select,#oc-app-full textarea{background:var(--oc-surface);border:1px solid var(--oc-line);border-radius:11px;padding:11px 12px;min-height:44px;width:100%;font-size:16px;min-width:0}
+#oc-app-full textarea{min-height:95px;resize:vertical}
+#oc-app-full label{display:block;font-size:12px;margin-bottom:5px;color:var(--oc-muted)}
+#oc-app-full .field{margin:12px 0}
+#oc-app-full .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#oc-app-full .back{display:flex;gap:5px;align-items:center;border:0;background:transparent;padding:0;font-size:13px;margin-bottom:10px;color:var(--oc-muted)}
+#oc-app-full .back svg{width:17px;height:17px}
+#oc-app-full .detail-title{font-family:Georgia,serif;font-size:27px;font-weight:400;margin:8px 0}
+#oc-app-full .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+#oc-app-full .chip{padding:6px 9px;border:1px solid var(--oc-line);border-radius:7px;font-size:12px}
+#oc-app-full .tabs{display:flex;border-bottom:1px solid var(--oc-line);margin:16px 0 8px}
+#oc-app-full .tabs button{flex:1;background:transparent;border:0;border-bottom:2px solid transparent;font-size:12px;padding:8px 4px;color:var(--oc-muted)}
+#oc-app-full .tabs button[aria-pressed=true]{border-bottom-color:var(--oc-ink);color:var(--oc-ink)}
+#oc-app-full .hero{padding:20px;border-radius:17px;background:var(--oc-ink);color:var(--oc-bg);margin-top:14px}
+#oc-app-full .hero .small{font-size:12px;opacity:.8}
+#oc-app-full .big{font-size:32px;margin:8px 0;font-variant-numeric:tabular-nums}
+#oc-app-full .hero-footer{display:flex;justify-content:space-between;font-size:12px;gap:10px}
+#oc-app-full .hero-footer .gain{color:light-dark(#bad9bf,#306746)}
+#oc-app-full .filters{display:flex;gap:8px}#oc-app-full .filters select{font-size:13px;flex:1}#oc-app-full .filters select:last-child{flex:0 0 80px}
+#oc-app-full .chart{display:block;width:100%;height:140px;margin-top:12px}
+#oc-app-full .chart text{fill:var(--oc-muted);font:11px -apple-system,sans-serif}
+#oc-app-full .chart .grid{stroke:var(--oc-line);stroke-width:1}
+#oc-app-full .chart .now{stroke:var(--oc-green);stroke-width:2.5;fill:none}
+#oc-app-full .chart .old{stroke:var(--oc-muted);stroke-width:1.5;stroke-dasharray:4 4;fill:none;opacity:.7}
+#oc-app-full .legend{display:flex;justify-content:flex-end;gap:12px;font-size:11px;color:var(--oc-muted);margin:8px 0}
+#oc-app-full .num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+#oc-app-full .gain{color:var(--oc-green);font-size:12px}
+#oc-app-full .loss{color:light-dark(#a7514b,#e89b92);font-size:12px}
+#oc-app-full .explore-icon{height:36px;width:36px;background:var(--oc-surface);border-radius:9px;display:flex;align-items:center;justify-content:center}
+#oc-app-full .explore-icon svg{width:19px;height:19px}
+#oc-app-full nav{display:flex;justify-content:space-around;border-top:1px solid var(--oc-line);background:var(--oc-surface);padding:9px 3px 5px}
+#oc-app-full nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:transparent;border:0;color:var(--oc-muted);font-size:11px;min-width:48px;padding:4px}
+#oc-app-full nav button svg{width:20px;height:20px}
+#oc-app-full nav button[aria-current=page]{color:var(--oc-ink)}
+#oc-app-full .home-line{width:110px;height:4px;background:var(--oc-ink);border-radius:3px;margin:10px auto}
+#oc-app-full .feedback{margin-top:14px;font-size:12px;color:var(--oc-green)}
+#oc-app-full [hidden]{display:none}
+@media(max-width:360px){#oc-app-full{padding:12px 0}#oc-app-full main{padding-left:15px;padding-right:15px}#oc-app-full header{padding-left:17px;padding-right:17px}#oc-app-full nav button{font-size:10px}#oc-app-full .big{font-size:28px}}
+</style>
+<div class="app">
+<header><div class="brand"><img src="logo-obra-creativa-horizontal.png" alt="Obra Creativa" width="887" height="186"></div><div class="header-line"><h1 id="oc-full-title">Hola, Davide</h1><span class="preview">Simulación</span></div><p class="muted" id="oc-full-sub">Tu asistente comercial</p></header>
+<main id="oc-full-main" aria-live="polite"></main>
+<nav aria-label="Navegación principal">
+<button type="button" data-screen="home" aria-current="page"><i data-lucide="mic" aria-hidden="true"></i>Asistente</button>
+<button type="button" data-screen="clients"><i data-lucide="contact-round" aria-hidden="true"></i>Clientes</button>
+<button type="button" data-screen="orders"><i data-lucide="clipboard-list" aria-hidden="true"></i>Pedidos</button>
+<button type="button" data-screen="sales"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i>Ventas</button>
+<button type="button" data-screen="explore"><i data-lucide="compass" aria-hidden="true"></i>Explorar</button>
+</nav><div class="home-line"></div>
+</div>
+<script src="customer-sheet-pdf.js"></script><script src="customer-sheet.js"></script>
+<script>
+(function(){
+const root=document.getElementById('oc-app-full'),main=root.querySelector('#oc-full-main');
+let active='home',salesGroup='clients';
+const titles={home:['Hola, Davide','Tu asistente comercial'],clients:['Clientes','Directorio · fuente prevista: Zoho'],orders:['Pedidos','Formato PEDIDO LATAM'],sales:['Ventas','Zoho · datos de ejemplo'],explore:['Explorar','Todo tu trabajo en un solo lugar']};
+const companies=[{name:'ALFA Gres',city:'Bogotá · Colombia',initials:'AG',brands:['Por completar'],people:['Contacto por vincular'],note:'Desarrollar el concepto Made in Italy y organizar una visita a Bogotá.'},{name:'Apolo Decor',city:'Guayaquil · Ecuador',initials:'AD',brands:['Emilgroup','Fondovalle'],people:['Contactos por verificar'],note:'Dar seguimiento al pedido de placas de 12 mm y al inicio de las de 6 mm.'},{name:'Atika',city:'Santiago · Chile',initials:'AT',brands:['Emilgroup','Fondovalle','Casalgrande Padana'],people:['Muriel Camis · Propietaria','Julia Montenegro · Compras','Manuela · Marketing'],note:'Interés en Mineralis y La Chianca. Definir espacio y volúmenes para las placas de 12 mm.'},{name:'CCU',city:'Guadalajara · México',initials:'CC',brands:['Por completar'],people:['Miguel Tadeo'],note:'Verificar la recepción de las muestras Portland Stone y Unique Travertin. Precio cotizado para 90×180: €24/m².'},{name:'Mosa Gres',city:'Panamá · Panamá',initials:'MG',brands:['Por completar'],people:['Marianna Adonnizio'],note:'Proponer Peperino para stock y dar seguimiento a los proyectos de showroom de Bongio y Pietra Compattata.'},{name:'SBG',city:'Buenos Aires · Argentina',initials:'SB',brands:['Emilgroup','Fondovalle','Fioranese','Ceramica Cielo'],people:['Fabio Guerrini','Alberto Bjerfas'],note:'Dar seguimiento a las muestras La Chianca Beige y Milano Sublime; verificar el pedido de Fornace.'},{name:'Varo',city:'Santiago · Chile',initials:'VA',brands:['41zero42'],people:['Valentina','Rosario'],note:'Revisar el precio de Superclassica Beige 60×120 y dar seguimiento a Fornace.'}];
+function icon(name){return '<i data-lucide="'+name+'" aria-hidden="true"></i>';}
+function icons(){if(typeof lucide!=='undefined')lucide.createIcons({attrs:{width:18,height:18}});}
+function back(){return '<button type="button" class="back cursor-interaction" data-back="explore">'+icon('chevron-left')+'Explorar</button>';}
+function row(title,sub,action,ic){return '<button type="button" class="list-row cursor-interaction" data-action="'+action+'"><span class="row-main">'+(ic?'<span class="explore-icon">'+icon(ic)+'</span>':'')+'<span>'+title+'<span class="muted">'+sub+'</span></span></span>'+icon('chevron-right')+'</button>';}
+function setHeader(a,b){root.querySelector('#oc-full-title').textContent=a;root.querySelector('#oc-full-sub').textContent=b;}
+function show(screen){active=screen;setHeader(...titles[screen]);root.querySelectorAll('nav button').forEach(b=>{if(b.dataset.screen===screen)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+if(screen==='home'){main.innerHTML='<div class="voice-area"><p>¿Cómo puedo ayudarte?</p><button type="button" class="mic cursor-interaction" data-action="voice" aria-label="Probar conversación">'+icon('mic')+'</button><p class="muted">Habla o escribe una solicitud</p></div><form id="oc-message-form"><input aria-label="Solicitud al asistente" placeholder="Escribe a tu asistente…"><button type="submit" class="action full cursor-interaction" style="margin-top:8px">Envía una solicitud</button></form><div id="oc-answer" class="feedback" aria-live="polite"></div><section class="section"><h2>Pendiente de seguimiento</h2><div class="panel"><span class="pill">Cersaie 2026</span><p style="margin-top:10px;font-size:14px">Atika · placas y nuevas colecciones</p><p class="muted" style="margin-top:5px">Definir el potencial de las placas de 12 mm.</p><button type="button" class="action secondary full cursor-interaction" data-action="client-2" style="margin-top:12px">Abrir ficha del cliente</button></div></section>';main.querySelector('form').addEventListener('submit',e=>{e.preventDefault();const q=main.querySelector('input').value.toLowerCase();if(/vent|factur/.test(q))show('sales');else if(/pedido|orden/.test(q))orderForm();else if(/atika/.test(q))clientDetail(2);else main.querySelector('#oc-answer').textContent='Ejemplo: “Muéstrame las ventas”, “Abre Atika” o “Prepara un pedido”.';});}
+if(screen==='clients'){main.innerHTML='<input id="oc-client-search" aria-label="Buscar empresa o contacto" placeholder="Buscar empresa o contacto"><div id="oc-contacts"></div>';renderClients('');main.querySelector('input').addEventListener('input',e=>renderClients(e.target.value));}
+if(screen==='orders'){main.innerHTML='<button type="button" class="action full cursor-interaction" data-action="new-order">'+icon('plus')+' Nuevo pedido</button><section class="section"><h2>Borradores · ejemplo</h2>'+row('Atika · Fondovalle','Por completar · artículos y cantidades','new-order','file-text')+'</section><section class="section"><h2>Tu formato</h2><div class="panel"><p style="font-size:14px">PEDIDO LATAM OBRA CREATIVA</p><p class="muted" style="margin-top:8px">Distribuidor y marca, artículos, cantidad, precio y moneda.</p></div></section>';}
+if(screen==='sales'){sales();}
+if(screen==='explore'){main.innerHTML=row('Correo','Microsoft 365 · bandeja de demostración','correo','mail')+row('Oportunidades','Negocios y próximas acciones','opportunities','target')+row('Reuniones y ferias','Cersaie 2026 y notas comerciales','fairs','notebook-pen')+row('Productos y disponibilidad','Primera fuente prevista: Emilgroup','availability','package-search')+row('Marketing','Campañas de correo y publicaciones en Instagram','marketing','megaphone')+row('Configuración','Cuentas, fuentes y permisos','settings','settings');}
+wire();icons();}
+function renderClients(q){const target=main.querySelector('#oc-contacts');let letter='';target.innerHTML='';companies.forEach((c,i)=>{if(!(c.name+' '+c.city+' '+c.people.join(' ')).toLowerCase().includes(q.toLowerCase()))return;const l=c.name[0];if(l!==letter){target.insertAdjacentHTML('beforeend','<div class="letter">'+l+'</div>');letter=l;}target.insertAdjacentHTML('beforeend','<button type="button" class="list-row cursor-interaction" data-action="client-'+i+'"><span class="row-main"><span class="avatar">'+c.initials+'</span><span>'+c.name+'<span class="muted">'+c.city+'</span></span></span>'+icon('chevron-right')+'</button>');});if(!target.children.length)target.innerHTML='<p class="muted" style="margin-top:18px">Sin resultados en la vista previa.</p>';wire();icons();}
+function clientDetail(i){const c=companies[i];setHeader('Ficha del cliente','Notas recopiladas · conexión con Zoho por completar');main.innerHTML='<button type="button" class="back cursor-interaction" data-back="clients">'+icon('chevron-left')+'Clientes</button><div class="avatar" style="width:64px;height:64px;font-size:20px;margin:10px auto">'+c.initials+'</div><div class="detail-title" style="text-align:center">'+c.name+'</div><p class="muted" style="text-align:center">'+c.city+'</p><div class="chips">'+c.brands.map(b=>'<span class="chip">'+b+'</span>').join('')+'</div><section class="section"><h2>Personas</h2>'+c.people.map(p=>'<div class="list-row"><span>'+p+'</span>'+icon('user-round')+'</div>').join('')+'</section><section class="section"><h2>Últimas notas · Cersaie 2026</h2><div class="panel"><p style="font-size:13px">'+c.note+'</p></div></section><div class="two section"><button type="button" class="action secondary cursor-interaction" data-action="note">Agregar nota</button><button type="button" class="action cursor-interaction" data-action="new-order">Preparar pedido</button></div><button type="button" class="action secondary full cursor-interaction" id="oc-generate-sheet" style="margin-top:16px">Generar ficha cliente</button><div id="oc-note-area"></div>';main.querySelector('#oc-generate-sheet').onclick=()=>{setHeader('Ficha para exportar',c.name);window.openCustomerSheet(main,c,()=>clientDetail(i));};wire();icons();}
+function orderForm(){setHeader('Nuevo pedido','Borrador local · sin enviar');main.innerHTML='<button type="button" class="back cursor-interaction" data-back="orders">'+icon('chevron-left')+'Pedidos</button><form id="oc-order-form"><div class="field"><label for="oc-distributor">DISTRIBUIDOR</label><input id="oc-distributor" list="oc-distributors" placeholder="Buscar cliente de Zoho…" required><datalist id="oc-distributors">'+companies.map(c=>'<option value="'+c.name+'">').join('')+'</datalist></div><div class="field"><label for="oc-brand">MARCA</label><select id="oc-brand"><option>Fondovalle</option><option>Emilgroup</option><option>Coem</option><option>41zero42</option><option>Bongio</option><option>Galassia</option><option>Natucer</option></select></div><div class="field"><label for="oc-series">SERIE</label><input id="oc-series" placeholder="Ej. La Chianca"></div><div class="two"><div class="field"><label for="oc-color">COLOR</label><input id="oc-color" placeholder="Beige"></div><div class="field"><label for="oc-format">FORMATO</label><input id="oc-format" placeholder="120×120"></div></div><div class="field"><label for="oc-finish">ACABADO</label><input id="oc-finish" placeholder="Natural"></div><div class="two"><div class="field"><label for="oc-qty">CANTIDAD</label><input id="oc-qty" type="number" min="0" step="any" placeholder="0"></div><div class="field"><label for="oc-unit">UNIDAD</label><select id="oc-unit"><option>m²</option><option>Piezas</option></select></div></div><div class="two"><div class="field"><label for="oc-price">PRECIO</label><input id="oc-price" type="number" min="0" step="any" placeholder="Por confirmar"></div><div class="field"><label for="oc-money">TIPO DE MONEDA</label><select id="oc-money"><option>EUR</option><option>USD</option></select></div></div><button type="submit" class="action full cursor-interaction">Revisar borrador</button></form><div id="oc-order-feedback" class="feedback"></div>';main.querySelector('form').addEventListener('submit',e=>{e.preventDefault();const name=main.querySelector('#oc-distributor').value;if(!companies.some(c=>c.name===name)){main.querySelector('#oc-order-feedback').textContent='Elige un cliente entre las sugerencias de la vista previa.';return;}main.querySelector('#oc-order-feedback').textContent='Borrador de ejemplo para '+name+' · '+main.querySelector('#oc-brand').value+'. Verificar precios, artículos y destinatarios antes de enviar.';});wire();icons();}
+const ranking={clients:[['Atika','Chile',248400,18.2],['SBG','Argentina',196800,9.6],['Apolo Decor','Ecuador',142600,-4.3]],brands:[['Emilgroup','Grupo',438500,14.8],['Fondovalle','Placas y superficies',327200,21.3],['Coem','Pavimentos',219800,8.1]],countries:[['Chile','8 clientes',382600,15.4],['México','14 clientes',301200,7.8],['Ecuador','6 clientes',248900,-2.1]]};
+function sales(){main.innerHTML='<div class="filters"><select id="oc-sales-period" aria-label="Período"><option value="year">Año en curso · 2026</option><option value="q3">Tercer trimestre · 2026</option></select><select id="oc-sales-currency" aria-label="Moneda"><option>EUR</option><option>USD</option></select></div><div class="hero"><p class="small">Ventas netas · ejemplo</p><div class="big" id="oc-sales-value"></div><div class="hero-footer"><span class="gain">↗ +12.4% vs. 2025</span><span>42 clientes</span></div></div><section class="section"><h2>Evolución mensual</h2><svg class="chart" viewBox="0 0 340 140" role="img" aria-label="Gráfico de ejemplo de las ventas"><path class="grid" d="M35 20H325 M35 65H325 M35 110H325"/><text x="0" y="24">200</text><text x="0" y="69">100</text><text x="16" y="114">0</text><path class="old" d="M35 80L68 76L100 90L132 65L165 74L197 54L229 62L262 81L294 60L325 98"/><path class="now" d="M35 76L68 63L100 81L132 55L165 66L197 30L229 44L262 73L294 34L325 95"/><text x="35" y="136">Ene</text><text x="130" y="136">Abr</text><text x="230" y="136">Jul</text><text x="308" y="136">Oct</text></svg><div class="legend"><span>2026 ━</span><span>2025 ┄</span><span id="oc-sales-unit">miles de EUR</span></div></section><div class="tabs" role="group" aria-label="Analizar por"><button type="button" data-sales="clients">Clientes</button><button type="button" data-sales="brands">Marcas</button><button type="button" data-sales="countries">Países</button></div><div id="oc-sales-ranking"></div><div id="oc-sales-detail"></div>';main.querySelectorAll('[data-sales]').forEach(b=>b.addEventListener('click',()=>{salesGroup=b.dataset.sales;updateSales();}));main.querySelectorAll('select').forEach(s=>s.addEventListener('change',updateSales));updateSales();}
+function updateSales(){const currency=main.querySelector('#oc-sales-currency').value,q=main.querySelector('#oc-sales-period').value==='q3',factor=(q?.28:1)*(currency==='USD'?.55:1);const money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency,maximumFractionDigits:0}).format(Math.round(n));main.querySelector('#oc-sales-value').textContent=money(1248600*factor);main.querySelector('.hero-footer').innerHTML='<span class="gain">↗ '+(q?'8.7':'12.4')+'% vs. 2025</span><span>'+(q?28:42)+' clientes</span>';main.querySelector('#oc-sales-unit').textContent='miles de '+currency;main.querySelectorAll('[data-sales]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sales===salesGroup)));main.querySelector('.chart').hidden=q;main.querySelector('.legend').hidden=q;main.querySelector('.section h2').textContent=q?'Julio — septiembre':'Evolución mensual';main.querySelector('#oc-sales-ranking').innerHTML=ranking[salesGroup].map((r,i)=>'<button type="button" class="list-row cursor-interaction" data-rank="'+i+'"><span>'+r[0]+'<span class="muted">'+r[1]+'</span></span><span class="num">'+money(r[2]*factor)+'<span class="muted '+(r[3]<0?'loss':'gain')+'">'+(r[3]>0?'+':'')+r[3].toLocaleString('es-MX')+'%</span></span></button>').join('');main.querySelector('#oc-sales-detail').innerHTML='';main.querySelectorAll('[data-rank]').forEach(b=>b.addEventListener('click',()=>{const r=ranking[salesGroup][Number(b.dataset.rank)];main.querySelector('#oc-sales-detail').innerHTML='<div class="panel section"><h2>'+r[0]+'</h2><p class="muted">Detalle de ejemplo · '+(q?'tercer trimestre':'1 de enero — 5 de octubre')+'</p><div class="list-row"><span>Ventas netas</span><span class="num">'+money(r[2]*factor)+'</span></div><p class="muted" style="margin-top:10px">Las facturas reales estarán disponibles después de verificar los datos de Zoho.</p></div>';}));}
+function explorePage(which){const content={opportunities:['Oportunidades','Negocios registrados en Zoho',row('Proyecto Lumaris','ID Studio · Negociación · importe por completar','deal','target')+row('Proyecto Beaches Barbados','Kala · Oportunidad · fecha por completar','deal','target')+row('Proyecto Cancún · 750 m²','Arca · Inicio · marca por completar','deal','target')],fairs:['Reuniones y ferias','Notas recopiladas · Cersaie 2026','<div class="panel"><span class="pill">Cersaie 2026</span><p style="margin-top:10px;font-size:14px">Clientes, productos y próximas acciones</p></div>'+row('Atika','Mineralis, La Chianca y placas de 12 mm','client-2','notebook-pen')+row('Apolo Decor','Pedido de placas de 12 mm y 6 mm','client-1','notebook-pen')+row('SBG','Muestras y pedido de Fornace','client-5','notebook-pen')],availability:['Disponibilidad','Emilgroup · conexión por implementar','<form id="oc-stock-form"><div class="field"><label for="oc-code">Código de artículo</label><input id="oc-code" placeholder="Ej. 00EK5R02" required></div><div class="two"><div class="field"><label for="oc-stock-qty">Cantidad</label><input id="oc-stock-qty" type="number" placeholder="200" required></div><div class="field"><label for="oc-stock-unit">Unidad</label><select id="oc-stock-unit"><option>m²</option><option>Piezas</option></select></div></div><button type="submit" class="action full cursor-interaction">Consultar disponibilidad</button></form><div class="feedback" id="oc-stock-result"></div>'],marketing:['Marketing','Microsoft 365 e Instagram · funciones previstas',row('Nueva campaña de correo','Destinatarios, contenido y aprobación','mailing','mail')+row('Publicación en Instagram','Cuenta Business · borrador y calendario','instagram','instagram')],settings:['Configuración','Estado de las integraciones','<div class="list-row"><span>Zoho CRM<span class="muted">Acceso verificado en esta conversación</span></span><span class="pill">Lectura</span></div><div class="list-row"><span>App ↔ Zoho<span class="muted">Sincronización por implementar</span></span></div><div class="list-row"><span>Emilgroup<span class="muted">Disponibilidad por conectar</span></span></div><div class="list-row"><span>Outlook · Microsoft 365<span class="muted">Correo y envío por conectar</span></span></div><div class="list-row"><span>Instagram Business<span class="muted">Publicaciones por conectar</span></span></div><div class="list-row"><span>Penta Transaction<span class="muted">Segunda fase</span></span></div>']};const c=content[which];setHeader(c[0],c[1]);main.innerHTML=back()+c[2];wire();icons();if(which==='availability')main.querySelector('form').addEventListener('submit',e=>{e.preventDefault();main.querySelector('#oc-stock-result').textContent='Vista previa: no se consultó la disponibilidad. El resultado mostrará cantidad, unidad, fuente y hora de la consulta.';});}
+function draft(kind){setHeader(kind==='mailing'?'Nueva campaña de correo':'Publicación en Instagram','Borrador de ejemplo · sin enviar');main.innerHTML=back()+'<form><div class="field"><label for="oc-draft-title">'+(kind==='mailing'?'Asunto':'Título de la actividad')+'</label><input id="oc-draft-title" placeholder="Presentación de una nueva colección"></div><div class="field"><label for="oc-draft-audience">'+(kind==='mailing'?'Destinatarios':'Cuenta')+'</label><input id="oc-draft-audience" placeholder="'+(kind==='mailing'?'Clientes interesados · por seleccionar':'Instagram Business · por conectar')+'"></div><div class="field"><label for="oc-draft-body">Texto</label><textarea id="oc-draft-body" placeholder="Escribe o dicta el contenido…"></textarea></div><div class="field"><label for="oc-draft-date">Fecha y hora propuestas</label><input id="oc-draft-date" type="datetime-local"></div><button type="submit" class="action full cursor-interaction">Revisar borrador</button></form><div class="feedback"></div>';wire();main.querySelector('form').addEventListener('submit',e=>{e.preventDefault();main.querySelector('.feedback').textContent='Borrador local listo para revisar. No se envió ningún mensaje ni se programó ninguna publicación.';});icons();}
+function wire(){main.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show(b.dataset.back));main.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a.startsWith('client-'))clientDetail(Number(a.split('-')[1]));else if(a==='new-order')orderForm();else if(a==='voice'){main.querySelector('#oc-answer').textContent='Ejemplo de voz: “Abre la ficha de Atika”.';clientDetail(2);}else if(a==='note'){main.querySelector('#oc-note-area').innerHTML='<div class="field"><label for="oc-client-note">Nueva nota · vista previa</label><textarea id="oc-client-note" placeholder="Escribe la nota de la reunión…"></textarea></div><button class="action full cursor-interaction" type="button" id="oc-save-note">Guardar en la vista previa</button><div class="feedback" id="oc-note-feedback"></div>';main.querySelector('#oc-save-note').onclick=()=>{main.querySelector('#oc-note-feedback').textContent='Nota guardada solo en esta pantalla. No se modificó Zoho.';};}else if(a==='mailing'||a==='instagram')draft(a);else if(a==='deal'){setHeader('Detalle de la oportunidad','Datos por completar en Zoho');main.innerHTML=back()+'<div class="panel"><p>Importe, fecha de cierre y próxima acción</p><p class="muted" style="margin-top:10px">La pantalla completa estará vinculada al negocio de Zoho.</p></div>';wire();icons();}else explorePage(a);});}
+root.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>show(b.dataset.screen)));
+show('home');
+if(document.modelContext?.registerTool){
+ const lifecycle=new AbortController();
+ try{Promise.resolve(document.modelContext.registerTool({
+  name:'navigate_simulator',title:'Abrir sección del simulador',
+  description:'Abre una sección del simulador comercial. No modifica Zoho ni envía mensajes.',
+  inputSchema:{type:'object',properties:{section:{type:'string',enum:['home','clients','orders','sales','explore']}},required:['section'],additionalProperties:false},
+  annotations:{readOnlyHint:true,untrustedContentHint:false},
+  execute(input){if(!input||!Object.hasOwn(titles,input.section)||Object.keys(input).length!==1)throw new Error('Sección no válida');show(input.section);return{section:input.section,simulation:true};}
+ },{signal:lifecycle.signal})).catch(()=>{});}catch(error){}
+ window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
+}
+})();
+</script>
+</div>
+
+<script src="https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js"></script>
+<script src="https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js"></script>
+<script>
+(() => {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set(["top", "right", "bottom", "left"]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (event) => {
+    for (const target of event.composedPath()) {
+      if (target?.nodeType === Node.ELEMENT_NODE) {
+        const trigger = target.closest("[data-tooltip]");
+        if (trigger) return trigger;
+      }
+    }
+    return null;
+  };
+  const containsTarget = (trigger, target) =>
+    target?.nodeType != null && trigger.contains(target);
+  const getContent = (trigger) =>
+    trigger.getAttribute("data-tooltip")?.trim() ?? "";
+  const getPlacement = (trigger) => {
+    const placement = trigger.getAttribute("data-tooltip-placement");
+    return tooltipPlacements.has(placement) ? placement : "top";
+  };
+  const getTooltip = () => {
+    if (tooltip == null) {
+      tooltip = document.createElement("div");
+      tooltip.id = tooltipId;
+      tooltip.className = "tooltip";
+      tooltip.setAttribute("role", "tooltip");
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) => {
+    const ids = new Set(
+      (trigger.getAttribute("aria-describedby") ?? "")
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute("aria-describedby");
+    } else {
+      trigger.setAttribute("aria-describedby", [...ids].join(" "));
+    }
+  };
+  const clearOpenTimeout = () => {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) => {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) => {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              "--tooltip-available-width",
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              "--tooltip-available-height",
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: "fixed",
+    })
+      .then(({ x, y }) => {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = "visible";
+      })
+      .catch(() => {
+        if (activeTrigger === trigger && request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) => {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = "hidden";
+    floating.style.transform = "translate(0, 0)";
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () => {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) => {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() < skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() => {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) => {
+    if (event.pointerType === "touch") {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) => {
+    lastPointerWasTouch =
+      event.type === "pointerdown" && event.pointerType === "touch";
+  };
+  const handleTouchClick = (event) => {
+    const isTouch = event.pointerType === "touch" || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch && activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() => {
+      if (activeTrigger === trigger && !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) => {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) => {
+    const trigger = getTrigger(event);
+    if (trigger?.matches(":focus-visible")) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape") {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) => {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handlers = {
+    pointerover: handlePointerOpen,
+    pointerdown: handlePointer,
+    pointercancel: handlePointer,
+    click: handleTouchClick,
+    pointerout: handleLeave,
+    focusin: handleFocusIn,
+    focusout: handleLeave,
+    keydown: handleKeyDown,
+    contextmenu: handleContextMenu,
+  };
+  const roots = new Map();
+  const handledEvents = new WeakSet();
+  const handleEvent = (event) => {
+    if (handledEvents.has(event)) return;
+    handledEvents.add(event);
+    handlers[event.type](event);
+  };
+  const discoverRoots = (node) => {
+    if (node.shadowRoot) listen(node.shadowRoot);
+    for (const element of node.querySelectorAll("*")) {
+      if (element.shadowRoot) listen(element.shadowRoot);
+    }
+  };
+  const listen = (root) => {
+    if (roots.has(root)) return;
+    for (const type of Object.keys(handlers)) root.addEventListener(type, handleEvent);
+    const observer = new window.MutationObserver((records) => {
+      for (const { addedNodes } of records) {
+        for (const node of addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) discoverRoots(node);
+        }
+      }
+      for (const [root, cleanup] of roots) {
+        if (root.host && !root.host.isConnected) {
+          cleanup();
+          roots.delete(root);
+        }
+      }
+      if (activeTrigger && !activeTrigger.isConnected) closeTooltip(false);
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    roots.set(root, () => {
+      observer.disconnect();
+      for (const type of Object.keys(handlers)) root.removeEventListener(type, handleEvent);
+    });
+    discoverRoots(root);
+  };
+  const destroy = () => {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    for (const cleanup of roots.values()) cleanup();
+    roots.clear();
+    tooltip = null;
+  };
+
+  // Events between children of one shadow root never reach the document.
+  listen(document);
+  window.addEventListener("pagehide", destroy, { once: true });
+})();
+</script>
+<script id="codex-visualization-tabs">
+(() => {
+  const selector = '.nav[role="tablist"] [role="tab"]';
+  const disabled = ':disabled,[aria-disabled="true"]';
+  const selectTab = (selected) => {
+    const panelId = selected.getAttribute("aria-controls");
+    for (const tab of selected.closest('[role="tablist"]').querySelectorAll('[role="tab"]')) {
+      const active = tab === selected;
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-selected", String(active));
+      const id = tab.getAttribute("aria-controls");
+      const panel = id && document.getElementById(id);
+      if (panel != null) {
+        panel.hidden = id !== panelId;
+        if (!panel.hidden && selected.id) {
+          panel.setAttribute("aria-labelledby", selected.id);
+        }
+      }
+    }
+  };
+  const interact = (event) => {
+    const tab = event.target?.closest?.(selector);
+    if (event.defaultPrevented || tab == null || tab.matches(disabled)) {
+      return;
+    }
+    if (event.type === "click") {
+      selectTab(tab);
+      return;
+    }
+    const tabs = Array.from(
+      tab.closest('[role="tablist"]').querySelectorAll('[role="tab"]'),
+    ).filter((candidate) => !candidate.matches(disabled));
+    const current = tabs.indexOf(tab);
+    let next;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      next = (current + 1) % tabs.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      next = (current + tabs.length - 1) % tabs.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    selectTab(tabs[next]);
+  };
+
+  for (const list of document.querySelectorAll('.nav[role="tablist"]')) {
+    const selected =
+      list.querySelector('[role="tab"][aria-selected="true"]') ??
+      list.querySelector('[role="tab"].active') ??
+      list.querySelector('[role="tab"]');
+    if (selected != null) {
+      selectTab(selected);
+    }
+  }
+  document.addEventListener("click", interact);
+  document.addEventListener("keydown", interact);
+  window.addEventListener("pagehide", () => {
+    document.removeEventListener("click", interact);
+    document.removeEventListener("keydown", interact);
+  }, { once: true });
+})();
+</script>
+<script id="codex-visualization-carousel">
+  (() => {
+    for (const root of document.querySelectorAll(".viz-carousel")) {
+      const panels = Array.from(
+        root.querySelectorAll(":scope > [data-variant]"),
+      );
+      if (panels.length === 0) {
+        continue;
+      }
+      root.setAttribute("role", "group");
+      panels.forEach((panel, index) => {
+        panel.hidden = index !== 0;
+        panel.setAttribute("role", "group");
+        if (!panel.hasAttribute("aria-label")) {
+          panel.setAttribute("aria-label", panel.dataset.variant);
+        }
+      });
+      root.dataset.activeVariant = panels[0].dataset.variant;
+      if (panels.length === 1) {
+        continue;
+      }
+
+      const controls = document.createElement("div");
+      controls.className = "viz-carousel-controls";
+      // Portable copy of the settings dropdown's legacy glyph; no 14px icon-package preset matches it.
+      // https://github.com/openai/openai/blob/master/codex/codex-apps/webview/src/icons/chevron.svg
+      controls.innerHTML = `
+      <button type="button" class="viz-carousel-previous cursor-interaction"><i data-lucide="chevron-left" aria-hidden="true"></i></button>
+      <details class="viz-carousel-picker">
+        <summary class="cursor-interaction">
+          <span class="viz-carousel-count tabular-nums"></span>
+          <span class="viz-carousel-name"></span>
+          <svg class="viz-carousel-caret" width="14" height="14" viewBox="0 0 20 21" fill="none" aria-hidden="true" focusable="false">
+            <path d="M15.2793 7.71101C15.539 7.45131 15.961 7.45131 16.2207 7.71101C16.4804 7.97071 16.4804 8.39272 16.2207 8.65242L10.4707 14.4024C10.211 14.6621 9.78902 14.6621 9.52932 14.4024L3.77932 8.65242L3.69436 8.54792C3.52385 8.28979 3.55205 7.93828 3.77932 7.71101C4.00659 7.48374 4.3581 7.45554 4.61623 7.62605L4.72073 7.71101L10 12.9903L15.2793 7.71101Z" fill="currentColor" stroke="currentColor" stroke-width="0.6" />
+          </svg>
+        </summary>
+        <div class="viz-carousel-options"></div>
+      </details>
+      <button type="button" class="viz-carousel-next cursor-interaction"><i data-lucide="chevron-right" aria-hidden="true"></i></button>`;
+      const previous = controls.querySelector(".viz-carousel-previous");
+      const next = controls.querySelector(".viz-carousel-next");
+      const picker = controls.querySelector(".viz-carousel-picker");
+      const summary = picker.querySelector("summary");
+      const count = controls.querySelector(".viz-carousel-count");
+      const name = controls.querySelector(".viz-carousel-name");
+      const options = controls.querySelector(".viz-carousel-options");
+      const status = document.createElement("span");
+      status.className = "sr-only";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      status.setAttribute("aria-atomic", "true");
+      previous.setAttribute(
+        "aria-label",
+        root.dataset.previousLabel ?? "Previous variant",
+      );
+      next.setAttribute("aria-label", root.dataset.nextLabel ?? "Next variant");
+
+      let active = 0;
+      let mousePointerId = null;
+      let summaryPointerHandled = false;
+      summary.addEventListener("pointerdown", (event) => {
+        summaryPointerHandled =
+          event.pointerType === "mouse" && event.button === 0 && !event.ctrlKey;
+        if (!summaryPointerHandled) {
+          return;
+        }
+        event.preventDefault();
+        summary.focus({ preventScroll: true });
+        picker.open = !picker.open;
+        mousePointerId = picker.open ? event.pointerId : null;
+      });
+      summary.addEventListener("click", (event) => {
+        if (summaryPointerHandled && event.detail > 0) {
+          event.preventDefault();
+        }
+      });
+      const choices = panels.map((panel, index) => {
+        const choice = document.createElement("button");
+        choice.type = "button";
+        choice.className = "cursor-interaction";
+        choice.textContent = panel.dataset.variant;
+        choice.addEventListener("click", () => {
+          select(index);
+          summary.focus();
+        });
+        choice.addEventListener("pointerup", (event) => {
+          if (
+            picker.open &&
+            event.pointerType === "mouse" &&
+            event.button === 0 &&
+            event.pointerId === mousePointerId
+          ) {
+            choice.click();
+          }
+        });
+        options.appendChild(choice);
+        return choice;
+      });
+      const select = (index) => {
+        const changed = active !== index;
+        active = index;
+        panels.forEach((panel, position) => {
+          panel.hidden = position !== active;
+          choices[position].setAttribute(
+            "aria-current",
+            String(position === active),
+          );
+        });
+        root.dataset.activeVariant = panels[active].dataset.variant;
+        count.textContent = `${active + 1} / ${panels.length}`;
+        name.textContent = panels[active].dataset.variant;
+        picker.open = false;
+        mousePointerId = null;
+        if (changed) {
+          status.textContent = `${count.textContent}: ${name.textContent}`;
+        }
+      };
+      previous.addEventListener("click", () =>
+        select((active + panels.length - 1) % panels.length),
+      );
+      next.addEventListener("click", () =>
+        select((active + 1) % panels.length),
+      );
+      picker.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && picker.open) {
+          event.preventDefault();
+          picker.open = false;
+          mousePointerId = null;
+          summary.focus();
+          return;
+        }
+        if (event.altKey || event.ctrlKey || event.metaKey) {
+          return;
+        }
+        const index = choices.indexOf(document.activeElement);
+        let nextIndex;
+        if (event.key === "ArrowDown") {
+          nextIndex = index < 0 ? active : (index + 1) % choices.length;
+        } else if (event.key === "ArrowUp") {
+          nextIndex = index < 0 ? active : (index + choices.length - 1) % choices.length;
+        } else if (picker.open && event.key === "Home") {
+          nextIndex = 0;
+        } else if (picker.open && event.key === "End") {
+          nextIndex = choices.length - 1;
+        } else {
+          return;
+        }
+        event.preventDefault();
+        picker.open = true;
+        choices[nextIndex].focus();
+      });
+      picker.addEventListener("focusout", (event) => {
+        if (!picker.contains(event.relatedTarget)) {
+          picker.open = false;
+          mousePointerId = null;
+        }
+      });
+      const dismiss = (event) => {
+        if (!summary.contains(event.target)) {
+          mousePointerId = null;
+        }
+        if (!picker.contains(event.target)) {
+          picker.open = false;
+        }
+      };
+      const endPointerSelection = () => {
+        mousePointerId = null;
+      };
+      const sizePicker = () => {
+        root.style.setProperty(
+          "--viz-carousel-picker-height",
+          `${picker.open ? options.offsetHeight : 0}px`,
+        );
+      };
+      picker.addEventListener("toggle", sizePicker);
+      window.addEventListener("resize", sizePicker);
+      document.addEventListener("pointerdown", dismiss);
+      document.addEventListener("pointerup", endPointerSelection);
+      document.addEventListener("pointercancel", endPointerSelection);
+      window.addEventListener("blur", endPointerSelection);
+      window.addEventListener(
+        "pagehide",
+        () => {
+          document.removeEventListener("pointerdown", dismiss);
+          document.removeEventListener("pointerup", endPointerSelection);
+          document.removeEventListener("pointercancel", endPointerSelection);
+          window.removeEventListener("blur", endPointerSelection);
+          window.removeEventListener("resize", sizePicker);
+        },
+        { once: true },
+      );
+      root.append(controls, status);
+      select(0);
+    }
+  })();
+</script>
+<script id="codex-visualization-lucide" async src="https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js"></script>
+<script>
+(() => {
+  const initialize = () => {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById("codex-visualization-lucide")
+    ?.addEventListener("load", initialize, { once: true });
+})();
+</script>
+
+<script>
+(function(){
+const root=document.getElementById('oc-app-full'),main=root.querySelector('#oc-full-main');
+const messages=[
+{client:'Atika',from:'Compras · Atika',address:'compras.atika@example.com',subject:'Consulta sobre placas de 12 mm',date:'Hoy · 10:30',body:'Hola, Davide:\n¿Podrías compartir las opciones de placas de 12 mm para nuestro showroom y confirmar qué información necesitas para preparar una cotización?\nGracias.',suggestion:'Hola:\nGracias por su interés. Prepararé una propuesta de placas de 12 mm para su showroom. ¿Me pueden indicar los formatos, acabados y cantidades estimadas?\nVerificaré precios y disponibilidad antes de confirmar la cotización.\nSaludos,\nDavide'},
+{client:'Apolo Decor',from:'Equipo · Apolo Decor',address:'apolo.decor@example.com',subject:'Seguimiento del pedido',date:'Hoy · 09:15',body:'Hola, Davide:\nNos gustaría revisar los próximos pasos para el pedido de placas. ¿Podemos confirmar los artículos y cantidades antes de avanzar?\nSaludos.',suggestion:'Hola:\nCon gusto revisamos el pedido. Por favor, compártanme la lista de artículos y cantidades para preparar el borrador y verificar las condiciones antes de avanzar.\nSaludos,\nDavide'},
+{client:'CCU',from:'Equipo · CCU',address:'ccu@example.com',subject:'Muestras para revisión',date:'Ayer · 16:45',body:'Hola, Davide:\nQueremos coordinar la revisión de las muestras. ¿Podrías ayudarnos a organizar el seguimiento?\nGracias.',suggestion:'Hola:\nCon gusto coordinamos la revisión. ¿Me pueden confirmar qué muestras han recibido y qué día les conviene conversar?\nSaludos,\nDavide'}];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let drafts={};try{drafts=JSON.parse(localStorage.getItem('oc-correo-demo-drafts')||'{}')||{};}catch(e){}
+let folder='inbox',query='';
+function header(title){root.querySelector('#oc-full-title').textContent=title;root.querySelector('#oc-full-sub').textContent='Microsoft 365 · simulación';}
+function notice(){return '<div class="panel" style="margin-bottom:16px"><span class="pill">Demostración</span><p class="muted" style="margin-top:8px">Mensajes y direcciones ficticios. Tu cuenta de Outlook todavía no está conectada.</p></div>';}
+function back(){return '<button type="button" class="back" data-mail="list">← Correo</button>';}
+function list(){header('Correo');main.innerHTML='<button type="button" class="back" data-back="explore">← Explorar</button>'+notice()+'<div class="tabs"><button type="button" data-mail="inbox" aria-pressed="'+(folder==='inbox')+'">Recibidos</button><button type="button" data-mail="drafts" aria-pressed="'+(folder==='drafts')+'">Borradores ('+Object.keys(drafts).length+')</button></div><input id="oc-mail-search" aria-label="Buscar correo" placeholder="Buscar cliente o asunto" value="'+esc(query)+'"><div id="oc-mail-list"></div>';main.querySelector('[data-back]').onclick=()=>root.querySelector('nav [data-screen="explore"]').click();main.querySelector('#oc-mail-search').oninput=e=>{query=e.target.value;renderList();};renderList();}
+function renderList(){const items=messages.map((m,i)=>({m,i})).filter(({m,i})=>(folder==='inbox'||Object.prototype.hasOwnProperty.call(drafts,i))&&(m.client+' '+m.subject).toLowerCase().includes(query.toLowerCase()));main.querySelector('#oc-mail-list').innerHTML=items.map(({m,i})=>'<button type="button" class="list-row" data-mail="'+(folder==='inbox'?'open':'edit')+'" data-id="'+i+'"><span><strong>'+esc(m.client)+'</strong><span class="muted">'+esc(m.subject)+'</span><span class="muted">'+(folder==='inbox'?esc(m.date):'Borrador local · sin enviar')+'</span></span><span>›</span></button>').join('')||'<p class="muted" style="margin-top:20px">'+(folder==='drafts'?'No hay borradores que coincidan. Abre un correo para preparar una respuesta.':'No hay correos que coincidan.')+'</p>';}
+function detail(i){const m=messages[i];header('Detalle del correo');main.innerHTML=back()+notice()+'<h2>'+esc(m.subject)+'</h2><p class="muted" style="margin:12px 0">'+esc(m.from)+'<br>'+esc(m.address)+'<br>'+esc(m.date)+'</p><span class="chip">Cliente · '+esc(m.client)+'</span><div class="panel section" style="white-space:pre-wrap">'+esc(m.body)+'</div><button type="button" class="action full section" data-mail="edit" data-id="'+i+'">Preparar respuesta</button>';}
+function edit(i){const m=messages[i];header('Borrador de respuesta');main.innerHTML=back()+'<p class="muted" style="margin:12px 0">Para: '+esc(m.address)+' · dirección ficticia</p><h2>Re: '+esc(m.subject)+'</h2><div class="field section"><label for="oc-mail-body">Respuesta</label><textarea id="oc-mail-body" style="min-height:220px" placeholder="Escribe tu respuesta…">'+esc(drafts[i]||'')+'</textarea></div><button type="button" class="action secondary full" data-mail="suggest" data-id="'+i+'">Usar respuesta de ejemplo</button><button type="button" class="action full" style="margin-top:10px" data-mail="save" data-id="'+i+'">Guardar borrador</button><div class="feedback" id="oc-mail-feedback" role="status"></div><p class="muted" style="margin-top:12px">El borrador se guarda en este dispositivo. El envío estará disponible al conectar Microsoft 365.</p>';}
+root.addEventListener('click',e=>{const entry=e.target.closest('[data-action="correo"]');if(entry){e.preventDefault();e.stopImmediatePropagation();folder='inbox';query='';list();return;}const b=e.target.closest('[data-mail]');if(!b)return;e.preventDefault();const a=b.dataset.mail,i=Number(b.dataset.id);if(a==='list')list();else if(a==='inbox'||a==='drafts'){folder=a;list();}else if(a==='open')detail(i);else if(a==='edit')edit(i);else if(a==='suggest'){main.querySelector('#oc-mail-body').value=messages[i].suggestion;main.querySelector('#oc-mail-feedback').textContent='Respuesta de ejemplo: revísala y ajústala antes de guardar.';}else if(a==='save'){const body=main.querySelector('#oc-mail-body').value.trim();if(!body){main.querySelector('#oc-mail-feedback').textContent='Escribe una respuesta antes de guardar.';return;}drafts[i]=body;try{localStorage.setItem('oc-correo-demo-drafts',JSON.stringify(drafts));main.querySelector('#oc-mail-feedback').textContent='Borrador guardado en este dispositivo. No se envió ningún correo.';}catch(err){main.querySelector('#oc-mail-feedback').textContent='Borrador conservado durante esta sesión. No se pudo guardar en el dispositivo.';}}},true);
+})();
+</script>
+</body>
+</html>
