@@ -1649,6 +1649,7 @@ html,body{margin:0;padding:0!important;min-height:100%;background:light-dark(#f2
 <button type="button" data-screen="clients"><i data-lucide="contact-round" aria-hidden="true"></i>Clientes</button>
 <button type="button" data-screen="orders"><i data-lucide="clipboard-list" aria-hidden="true"></i>Pedidos</button>
 <button type="button" data-screen="sales"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i>Ventas</button>
+<button type="button" data-screen="viajes"><i data-lucide="plane" aria-hidden="true"></i>Viajes</button>
 <button type="button" data-screen="explore"><i data-lucide="compass" aria-hidden="true"></i>Explorar</button>
 </nav><div class="home-line"></div>
 </div>
@@ -2300,6 +2301,28 @@ function renderList(){const items=messages.map((m,i)=>({m,i})).filter(({m,i})=>(
 function detail(i){const m=messages[i];header('Detalle del correo');main.innerHTML=back()+notice()+'<h2>'+esc(m.subject)+'</h2><p class="muted" style="margin:12px 0">'+esc(m.from)+'<br>'+esc(m.address)+'<br>'+esc(m.date)+'</p><span class="chip">Cliente · '+esc(m.client)+'</span><div class="panel section" style="white-space:pre-wrap">'+esc(m.body)+'</div><button type="button" class="action full section" data-mail="edit" data-id="'+i+'">Preparar respuesta</button>';}
 function edit(i){const m=messages[i];header('Borrador de respuesta');main.innerHTML=back()+'<p class="muted" style="margin:12px 0">Para: '+esc(m.address)+' · dirección ficticia</p><h2>Re: '+esc(m.subject)+'</h2><div class="field section"><label for="oc-mail-body">Respuesta</label><textarea id="oc-mail-body" style="min-height:220px" placeholder="Escribe tu respuesta…">'+esc(drafts[i]||'')+'</textarea></div><button type="button" class="action secondary full" data-mail="suggest" data-id="'+i+'">Usar respuesta de ejemplo</button><button type="button" class="action full" style="margin-top:10px" data-mail="save" data-id="'+i+'">Guardar borrador</button><div class="feedback" id="oc-mail-feedback" role="status"></div><p class="muted" style="margin-top:12px">El borrador se guarda en este dispositivo. El envío estará disponible al conectar Microsoft 365.</p>';}
 root.addEventListener('click',e=>{const entry=e.target.closest('[data-action="correo"]');if(entry){e.preventDefault();e.stopImmediatePropagation();folder='inbox';query='';list();return;}const b=e.target.closest('[data-mail]');if(!b)return;e.preventDefault();const a=b.dataset.mail,i=Number(b.dataset.id);if(a==='list')list();else if(a==='inbox'||a==='drafts'){folder=a;list();}else if(a==='open')detail(i);else if(a==='edit')edit(i);else if(a==='suggest'){main.querySelector('#oc-mail-body').value=messages[i].suggestion;main.querySelector('#oc-mail-feedback').textContent='Respuesta de ejemplo: revísala y ajústala antes de guardar.';}else if(a==='save'){const body=main.querySelector('#oc-mail-body').value.trim();if(!body){main.querySelector('#oc-mail-feedback').textContent='Escribe una respuesta antes de guardar.';return;}drafts[i]=body;try{localStorage.setItem('oc-correo-demo-drafts',JSON.stringify(drafts));main.querySelector('#oc-mail-feedback').textContent='Borrador guardado en este dispositivo. No se envió ningún correo.';}catch(err){main.querySelector('#oc-mail-feedback').textContent='Borrador conservado durante esta sesión. No se pudo guardar en el dispositivo.';}}},true);
+})();
+</script>
+<script>
+/* Viajes: embedded standalone agenda, isolated from existing screens. */
+(function(){
+ const root=document.getElementById('oc-app-full');
+ if(!root)return;
+ root.addEventListener('click',function(e){
+  const btn=e.target.closest('button[data-screen="viajes"]');
+  if(!btn)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  root.querySelectorAll('nav button').forEach(b=>b.removeAttribute('aria-current'));
+  btn.setAttribute('aria-current','page');
+  root.querySelector('#oc-full-title').textContent='Viajes';
+  root.querySelector('#oc-full-sub').textContent='Agenda continua · vuelos, hoteles y citas comerciales';
+  const main=root.querySelector('#oc-full-main');
+  main.innerHTML='';
+  const frame=document.createElement('iframe');
+  frame.src='viajes.html';frame.title='Agenda de viajes';
+  frame.style.cssText='display:block;width:100%;height:calc(100dvh - 225px);min-height:520px;border:0;background:#f7f7f5';
+  main.appendChild(frame);
+ },true);
 })();
 </script>
 </body>
